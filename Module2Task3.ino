@@ -15,7 +15,7 @@ void setup() {
   //M2
   pinMode(4, OUTPUT);
 
-
+  Serial.begin(9600);
     //initialize wheel as input
   pinMode(wheel, INPUT);
 }
@@ -29,21 +29,35 @@ void loop() {
 
 int countEncoder(int direction, int max){
 
+int wheelCount = 0;
+int previousVal = 1;
   //if moving forwards
   if(direction == 0)
   {
     for(int count=0; count<max; count++)
     {
-    Serial.println(count);
+    int wheelencoder = digitalRead(wheel);
+    
+    
+    if (wheelencoder!=previousVal)
+    {
+      wheelCount++;
+      previousVal=wheelencoder;
+    }
     digitalWrite(7, HIGH);
-    analogWrite(6, 255);
+    analogWrite(6, 128);
     digitalWrite(4, HIGH);                                     
-    analogWrite(5, 255);
+    analogWrite(5, 128);
+
+    Serial.println(wheelCount);
+    
     }
     
   }
 
-  //if moving backwards
+  return wheelCount;
+
+  /*if moving backwards
   else if (direction == 1)
   {
     for(int count=0; count< max; count++)
@@ -73,4 +87,5 @@ int countEncoder(int direction, int max){
     }
 
   }
+  */
 }
