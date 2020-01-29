@@ -2,6 +2,8 @@ const int wheel=10;
 int forward = 0;
 int backward = 1;
 int turn90 =2;
+int wheelCount = 0;
+int previousVal = 1;
 
 void setup() {
   
@@ -29,27 +31,35 @@ void loop() {
 
 int countEncoder(int direction, int max){
 
-int wheelCount = 0;
-int previousVal = 1;
+
   //if moving forwards
   if(direction == 0)
   {
-    for(int count=0; count<max; count++)
-    {
-    int wheelencoder = digitalRead(wheel);
-    
-    
-    if (wheelencoder!=previousVal)
-    {
-      wheelCount++;
-      previousVal=wheelencoder;
-    }
     digitalWrite(7, HIGH);
     analogWrite(6, 128);
     digitalWrite(4, HIGH);                                     
     analogWrite(5, 128);
+    
+    while(1)
+    {
+    int wheelencoder = digitalRead(wheel);
 
-    Serial.println(wheelCount);
+    if (wheelencoder!=previousVal)
+    {
+      wheelCount++;
+      previousVal=wheelencoder;
+      Serial.println(wheelCount);
+
+    }
+
+    if (wheelCount == 48)
+    {
+      break;
+    }
+    
+    
+
+
     
     }
     
