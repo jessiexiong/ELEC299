@@ -2,7 +2,7 @@ const int wheel = 2;
 
 int wheelCount = 0;
 int previousVal = 1;
-int val;
+int val = 0;
 int forward = 0;
 int backward = 1;
 int turn90 = 2;
@@ -11,6 +11,11 @@ int count = 0;
 //initialize time
   int volatile time1 = 0;
   int volatile time2 = 0;
+
+//initialize desired velocity
+  int desiredVelocity = 128;
+  int speedleft = 0;
+  int speedright = 0;
 
 void setup() {
 
@@ -30,69 +35,59 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(2), readspeed1, CHANGE);
   attachInterrupt(digitalPinToInterrupt(3), readspeed2, CHANGE);
+  
   Serial.begin(9600);
 
 
     //initialize wheel as input
-    pinMode(wheel, INPUT);
+    pinMode(wheel,OUTPUT);
 
+/*
     digitalWrite(7, HIGH);
-    digitalWrite(4, HIGH);  
-    analogWrite(6, 128);                                   
-    analogWrite(5, 128);
+    digitalWrite(4, HIGH);                                       
+    analogWrite(6, desiredVelocity);                                   
+    analogWrite(5, desiredVelocity);
+
+        Serial.println("Hi");
+        delay(200);
+   */
 }
 
 void loop() {
-  int countEncoder();
   val=countEncoder();
-
+  Serial.println(val);
   //if moving forwards
   while (val<48)
   {
     digitalWrite(7, HIGH);
     digitalWrite(4, HIGH);                                       
-    analogWrite(6, 128);                                   
-    analogWrite(5, 128);
+    analogWrite(6, desiredVelocity);                                   
+    analogWrite(5, desiredVelocity);
 
-    //get value of count again
-    val = countEncoder();
+    Serial.println("Hello");
+    delay(200);
 
-    Serial.println(val);
+  /*
+  if(speedleft!=desiredVelocity)
+  {
+    increment ();
   }
 
-  //if moving backwards
-  wheelCount=0;
-  val = 0;
-    while (val<32)
-  {
-    digitalWrite(7, LOW);
-    analogWrite(6, 128);
-    digitalWrite(4, LOW);                                     
-    analogWrite(5, 128);
-
-    }
     //get value of count again
     val = countEncoder();
 
-  //if turning 90 degrees
-  wheelCount=0;
-  val = 0;
-  while (val<8)
-  {
-    digitalWrite(7, HIGH);
-    analogWrite(6, 128);
-    digitalWrite(4, LOW);                                     
-    analogWrite(5, 128);
-
-    //get value of count again
-    val = countEncoder();
+    //Serial.println(val);
+    */
   }
+
 }
 
 int countEncoder(){
   while(1){
     if(digitalRead(2)==HIGH)
     {
+
+      Serial.println("hello");
       while(1)
       {
         if (digitalRead(2)==LOW)
@@ -101,40 +96,53 @@ int countEncoder(){
         }
       }
       wheelCount++;
+
+            Serial.println("wheelcount is"+wheelCount);
+
       return wheelCount++;
     }
   }
 }
 
   //calculate speed of motor 1
-  void readspeed1()
+  int readspeed1()
   {
     time2 = millis();
     float t = time2 - time1; //calculate time
     float d = 16;//calculate distance
-    float s = d/t;//calculate speed
+    float speedleft = d/t;//calculate speed
     Serial.print("Speed of motor 1 is: ");
-    Serial.println(s);
-
+    Serial.println(speedleft);
     time1 = millis();
+
+    
+    return (speedleft);
   }
   //calculate speed of motor 2
-    void readspeed2()
+    int readspeed2()
   {
     time2 = millis();
     float t = time2 - time1; //calculate time
     float d = 16 ;//calculate distance
-    float s = d/t; //calculate speed
+    float speedright = d/t; //calculate speed
 
     Serial.print("Speed of motor 2 is: ");
-    Serial.println(s);
+    Serial.println(speedright);
 
     time1 = millis();
+    return (speedright);
     }
 
 //Compare actual speed to desired speed 
-int leftSpeedInc = 0.5*round(32*(desiredVelocity-leftVelocity));
-int leftSpeedValue = leftSpeedValue+ leftSpeedInc;
+void increment ()
+{
+int leftSpeedInc = 0.5*round(32*(desiredVelocity-speedleft));
+int leftSpeedValue = speedleft + leftSpeedInc;
 
-int rightSpeedInc = 0.5*round(32*(desiredVelocity-rightVelocity));
-int rightSpeedValue = rightSpeedValue+ rightSpeedInc;
+int rightSpeedInc = 0.5*round(32*(desiredVelocity-speedright));
+int rightSpeedValue = speedright + rightSpeedInc;
+
+Serial.println("left speed value is: ");
+Serial.println(leftSpeedValue);
+delay(100);
+}
