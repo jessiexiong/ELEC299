@@ -1,140 +1,128 @@
-const int wheel = 2;
+#define E1 6
+#define M1 7
+#define E2 5
+#define M2 4
+#define BTN 8
+#define LED 10
+#define ENC_R 2
+#define ENC_L 3
 
-int wheelCount = 0;
-int previousVal = 1;
+int desiredVelocity=0.5;
 int val = 0;
-int forward = 0;
-int backward = 1;
-int turn90 = 2;
-int count = 0;
+int wheelCount=0;
 
 //initialize time
   int volatile time1 = 0;
   int volatile time2 = 0;
 
-//initialize desired velocity
-  int desiredVelocity = 128;
-  int speedleft = 0;
-  int speedright = 0;
+//speed left and right
+float speedleft;
+float speedright;
 
 void setup() {
 
-  //initialize pins
-  //E1
-  pinMode(6, OUTPUT);
-  //M1
-  pinMode(7, OUTPUT);
-  //E2
-  pinMode(5, OUTPUT);
-  //M2
-  pinMode(4, OUTPUT);
+//right encoder
+  pinMode(E1, OUTPUT);
+  pinMode(M1, OUTPUT);
+//left encoder
+  pinMode(E2, OUTPUT);
+  pinMode(M2, OUTPUT);
   
   //pin assignment for wheel encoders
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
+  pinMode(ENC_R, OUTPUT);
+  pinMode(ENC_L, OUTPUT);
 
-  attachInterrupt(digitalPinToInterrupt(2), readspeed1, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(3), readspeed2, CHANGE);
-  
+    //pin assignment for wheel encoders
+  pinMode(ENC_R, INPUT);
+  pinMode(ENC_L, INPUT);
+
+
+  attachInterrupt(digitalPinToInterrupt(ENC_R), readspeed1, CHANGE);
+  attachInterrupt(digitalPinToInterrupt(ENC_L), readspeed2, CHANGE);
+
   Serial.begin(9600);
+  delay(100);
 }
 
 void loop() {
 
  //initialize wheel as input
-    pinMode(wheel,OUTPUT);
-  
-  val=countEncoder();
-  Serial.println(val);
-  //if moving forwards
-  while (val<48)
-  {
-    digitalWrite(7, HIGH);
-    digitalWrite(4, HIGH);                                       
-    analogWrite(6, desiredVelocity);                                   
-    analogWrite(5, desiredVelocity);
-
-    Serial.println("Hello");
-    delay(200);
-
-
-  if(speedleft!=desiredVelocity)
-  {
-    increment ();
-  }
-
-    //get value of count again
-    val = countEncoder();
-
-    //Serial.println(val);
-
-  }
-
-}
-
-int countEncoder(){
-  while(1){
-    if(digitalRead(2)==HIGH)
+ if(wheelCount==0)
+   {
+      digitalWrite(M1, HIGH);
+      digitalWrite(M2, HIGH);                                       
+      analogWrite(E1, desiredVelocity);                                   
+      analogWrite(E2, desiredVelocity);
+      countEncoderL();
+   }
+   
+    while(wheelCount<48)
     {
+      digitalWrite(M1, HIGH);
+      digitalWrite(M2, HIGH);                                       
+      analogWrite(E1, desiredVelocity);                                   
+      analogWrite(E2, desiredVelocity);
+      delay(200);
+      countEncoderL();
+    }
 
-      Serial.println("hello");
-      while(1)
-      {
-        if (digitalRead(2)==LOW)
-        {
-          break;
-        }
-      }
+/*
+    if(speedleft!=desiredVelocity)
+    {
+      increment ();
+    }
+      //get value of count again
+      countEncoderL();
+      */
+ }
+
+int countEncoderL(){
+  while(1){
+    if(digitalRead(ENC_L)==LOW)
+    {
       wheelCount++;
-
-            Serial.println("wheelcount is"+wheelCount);
-
-      return wheelCount++;
+      return wheelCount;
     }
   }
 }
-
-  //calculate speed of motor 1
-  int readspeed1()
+   void readspeed1()
   {
     time2 = millis();
     float t = time2 - time1; //calculate time
-    float d = 16;//calculate distance
-    float speedleft = d/t;//calculate speed
-    Serial.print("Speed of motor 1 is: ");
-    Serial.println(speedleft);
-    time1 = millis();
-
-    
-    return (speedleft);
-  }
-  //calculate speed of motor 2
-    int readspeed2()
-  {
-    time2 = millis();
-    float t = time2 - time1; //calculate time
-    float d = 16 ;//calculate distance
-    float speedright = d/t; //calculate speed
-
-    Serial.print("Speed of motor 2 is: ");
+    float d = ENC_R*20.11/16;//calculate distance
+    float speedright = d/t;//calculate speed
+    Serial.println("Speed of motor 1 is: ");
     Serial.println(speedright);
-
     time1 = millis();
-    return (speedright);
+  }
+
+  //calculate speed of motor 2
+    void readspeed2()
+  {
+    time2 = millis();
+    float t = time2 - time1; //calculate time
+    float d = ENC_L*20.11/16 ;//calculate distance cm/tick
+    float speedleft = d/t; //calculate speed
+    Serial.println("Speed of motor 2 is: ");
+    Serial.println( speedleft);
+    time1 = millis();
     }
 
-//Compare actual speed to desired speed 
-void increment ()
+/*
+    void increment()
 {
-int leftSpeedInc = 0.5*round(32*(desiredVelocity-speedleft));
-int leftSpeedValue = speedleft + leftSpeedInc;
-analogWrite(5, leftSpeedValue); 
+    int leftSpeedInc = desiredVelocity-speedleft;
+    int leftSpeedValue = speedleft + leftSpeedInc;
+    analogWrite(E2, leftSpeedValue); 
+    Serial.println(leftSpeedValue);
 
-int rightSpeedInc = 0.5*round(32*(desiredVelocity-speedright));
-int rightSpeedValue = speedright + rightSpeedInc;
-analogWrite(5, rightSpeedValue); 
-
-Serial.println("left speed value is: ");
-Serial.println(leftSpeedValue);
-delay(100);
+    int rightSpeedInc = 0.5*round(32*(desiredVelocity-speedright));
+    int rightSpeedValue = speedright + rightSpeedInc;
+    analogWrite(E1, rightSpeedValue); 
+  
+    Serial.println("left speed value is: ");
+    Serial.println(leftSpeedValue);
+    delay(100);
+   
 }
+*/
