@@ -4,51 +4,16 @@
 sensor and continuously prints them to the Serial Monitor
 or Serial Plotter.
 */
-const int wheel = 2;
-
-int wheelCount = 0;
-int previousVal = 1;
-int val = 0;
-int forward = 0;
-int backward = 1;
-int turn90 = 2;
-int count = 0;
-float velocity = 0;
-float position = 0;
-
-//initialize time
-  int volatile time1 = 0;
-  int volatile time2 = 0;
-
-//initialize desired velocity
-  int desiredVelocity = 128;
-  int speedleft = 0;
-  int speedright = 0;
+long time = 0;
 
 //initialize acceleration variables 
   float x, y, z;
+  float a, b, c;
   
 void setup() {
-
-  //initialize pins
-  //E1
-  pinMode(6, OUTPUT);
-  //M1
-  pinMode(7, OUTPUT);
-  //E2
-  pinMode(5, OUTPUT);
-  //M2
-  pinMode(4, OUTPUT);
-  
-  //pin assignment for wheel encoders
-  pinMode(2, OUTPUT);
-  pinMode(3, OUTPUT);
-
-  attachInterrupt(digitalPinToInterrupt(2), readspeed1, CHANGE);
-  attachInterrupt(digitalPinToInterrupt(3), readspeed2, CHANGE);
   
   Serial.begin(9600);
-
+  
   //read acceleration
   while (!Serial);
 
@@ -62,144 +27,57 @@ void setup() {
   Serial.print(IMU.accelerationSampleRate());
   Serial.println(" Hz");
   Serial.println();
-  Serial.println("Acceleration in G's");
-  Serial.println("X\tY\tZ");
+  Serial.println("Acceleration in m/s^2");
+  Serial.println("X Y Z");
+
+  Serial.print("Gyroscope sample rate = ");
+  Serial.print(IMU.gyroscopeSampleRate());
+  Serial.println(" Hz");
+  Serial.println();
+  Serial.println("Gyroscope in degrees/second");
+  Serial.println("A B C");
 }
 
 void loop() {
-
-  //initialize wheel as output
-    pinMode(wheel,OUTPUT);
-  
-  val=countEncoder();
-  Serial.println(val);
-  //if moving forwards
-  while (val<48)
-  {
-    digitalWrite(7, HIGH);
-    digitalWrite(4, HIGH);                                       
-    analogWrite(6, desiredVelocity);                                   
-    analogWrite(5, desiredVelocity);
-
-    Serial.println("Hello");
-    delay(200);
-
-
-  if(speedleft!=desiredVelocity)
-  {
-    increment ();
-  }
-
-    //get value of count again
-    val = countEncoder();
-
-    //Serial.println(val);
-
-  }
-
+ 
   if (IMU.accelerationAvailable()) {
     IMU.readAcceleration(x, y, z);
+    time = millis();
 
-    Serial.print(x);
+  //convert Gs to m/s^2
+  x = x*9.8;
+  y = y*9.8;
+  z = z*9.8;
+
+  Serial.print(x);
+  Serial.print('\t');
+  Serial.print(y);
+  Serial.print('\t');
+  Serial.println(z);
+  Serial.print('\t');
+  }
+  
+  if (IMU.gyroscopeAvailable()) {
+    IMU.readGyroscope(a, b, c);
+
+    Serial.print(a);
     Serial.print('\t');
-    Serial.print(y);
+    Serial.print(b);
     Serial.print('\t');
-    Serial.println(z);
-    float acceleration[3]={x,y,z};
-  }
+    Serial.println(c);
 }
-
-int countEncoder(){
-  while(1){
-    if(digitalRead(2)==HIGH)
-    {
-
-      Serial.println("hello");
-      while(1)
-      {
-        if (digitalRead(2)==LOW)
-        {
-          break;
-        }
-      }
-      wheelCount++;
-
-            Serial.println("wheelcount is"+wheelCount);
-
-      return wheelCount++;
-    }
-  }
 }
-
-  //calculate speed of motor 1
-  int readspeed1()
-  {
-    time2 = millis();
-    float t = time2 - time1; //calculate time
-    float d = 16;//calculate distance
-    float speedleft = d/t;//calculate speed
-    Serial.print("Speed of motor 1 is: ");
-    Serial.println(speedleft);
-    time1 = millis();
-
-    
-    return (speedleft);
-  }
-  //calculate speed of motor 2
-    int readspeed2()
-  {
-    time2 = millis();
-    float t = time2 - time1; //calculate time
-    float d = 16 ;//calculate distance
-    float speedright = d/t; //calculate speed
-
-    Serial.print("Speed of motor 2 is: ");
-    Serial.println(speedright);
-
-    time1 = millis();
-    return (speedright);
-    }
-
-//Compare actual speed to desired speed 
-void increment ()
+float getvelocity(float i, long time)
 {
-int leftSpeedInc = 0.5*round(32*(desiredVelocity-speedleft));
-int leftSpeedValue = speedleft + leftSpeedInc;
-analogWrite(5, leftSpeedValue); 
-
-int rightSpeedInc = 0.5*round(32*(desiredVelocity-speedright));
-int rightSpeedValue = speedright + rightSpeedInc;
-analogWrite(5, rightSpeedValue); 
-
-Serial.println("left speed value is: ");
-Serial.println(leftSpeedValue);
-delay(100);
-}
-
-//need to use millis() somehow
-int getvelocity()
-{
-  int max=10;
-  int currentTime= millis();
-
-  for(int currentTime=0; currentTime<max; currentTime++){
-    float areaOne= x*y; //calcuate area from x,y acceleration values
-    float sumAreaOne = areaOne++;
-    velocity = sumAreaOne; 
-  }
-
+  //calculate velocity by integrating acceleration 
+  float velocity = i*time; 
   return velocity;
 }
 
-int getposition(){
-  int max=10;
-  int currentTime = millis();
-  for(int currentTime=0; currentTime<max; currentTime++){
-    int getvelocity();
-    float areaTwo = velocity*currentTime;
-    float sumAreaTwo = areaTwo++;
-    position = sumAreaTwo;
-  }
-
-  return position;
+float getposition(float i, long time)
+{
+  //get position by integrating velocity
+  float Velocity = i*time;
+  float Position = ((i*(time*time))/2);
+  return Position;
 }
