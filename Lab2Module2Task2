@@ -4,14 +4,22 @@
 sensor and continuously prints them to the Serial Monitor
 or Serial Plotter.
 */
-long time = 0;
 
+  float time=0;
 //initialize acceleration variables 
   float x, y, z;
   float a, b, c;
   
-void setup() {
+
+ //velocity declaration
+  float vel = 0;
+  float pos = 0;
+  float delta = 0;
+  float accel1=0, accel2 = 0, vel1=0;
+
   
+void setup() {
+  IMU.begin();
   Serial.begin(9600);
   
   //read acceleration
@@ -42,42 +50,43 @@ void loop() {
  
   if (IMU.accelerationAvailable()) {
     IMU.readAcceleration(x, y, z);
-    time = millis();
 
   //convert Gs to m/s^2
+  
   x = x*9.8;
   y = y*9.8;
   z = z*9.8;
 
-  Serial.print(x);
-  Serial.print('\t');
-  Serial.print(y);
-  Serial.print('\t');
-  Serial.println(z);
-  Serial.print('\t');
   }
-  
-  if (IMU.gyroscopeAvailable()) {
-    IMU.readGyroscope(a, b, c);
 
-    Serial.print(a);
-    Serial.print('\t');
-    Serial.print(b);
-    Serial.print('\t');
-    Serial.println(c);
-}
-}
-float getvelocity(float i, long time)
-{
-  //calculate velocity by integrating acceleration 
-  float velocity = i*time; 
-  return velocity;
+    float xg, yg, zg;
+/*
+  if (IMU.gyroscopeAvailable()) { //if data available for gyro
+        IMU.readGyroscope(xg, yg, zg);
+        
+  }
+  */
+  vel += integrate(accel1, x, delta);
+  accel1=accel2;
+  pos += integrate(vel1, vel, delta);
+  vel1=vel;
+  delta=millis()/1000;
+  Serial.println(x);
+  Serial.print('\t');
+  Serial.println(y);
+  Serial.print('\t');
+  Serial.print(vel);
+  Serial.print('\t');
+  Serial.print(pos);
+  Serial.print('\t');
+
+    
 }
 
-float getposition(float i, long time)
+
+float integrate(float previous, float current, float original)
 {
-  //get position by integrating velocity
-  float Velocity = i*time;
-  float Position = ((i*(time*time))/2);
-  return Position;
+  float difference;
+  difference = (millis()/1000-original)*(previous+current)/2;
+  return difference;
 }
