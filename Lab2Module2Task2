@@ -60,20 +60,17 @@ void loop() {
   }
 
     float xg, yg, zg;
-/*
-  if (IMU.gyroscopeAvailable()) { //if data available for gyro
-        IMU.readGyroscope(xg, yg, zg);
-        
-  }
-  */
+    
   vel += integrate(accel1, x, delta);
   accel1=accel2;
   pos += integrate(vel1, vel, delta);
   vel1=vel;
-  delta=millis()/1000;
+  delta = millis()/1000;
   Serial.println(x);
   Serial.print('\t');
   Serial.println(y);
+  Serial.print('\t');
+  Serial.print(z);
   Serial.print('\t');
   Serial.print(vel);
   Serial.print('\t');
@@ -87,6 +84,6 @@ void loop() {
 float integrate(float previous, float current, float original)
 {
   float difference;
-  difference = (millis()/1000-original)*(previous+current)/2;
+  difference = (millis()/1000-original)*((previous+current)/2);
   return difference;
 }
