@@ -1,0 +1,22 @@
+void setup()
+{
+	Init();
+	(optional delay)
+	WaitButton();
+}
+
+void loop()
+{
+	Forward();
+	ReactBumpers();
+}
+
+void ReactBumpers()
+{
+	if("both bumpers hit") then
+	pivot 180
+	if("left bumper hit") then
+	back up and pivot
+	if("left bumper hit") then
+	back up and pivot left by 
+}
