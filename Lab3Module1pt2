@@ -1,1 +1,111 @@
+#define E1 6
+#define M1 7
+#define E2 5
+#define M2 4
+#define ENC_L 3
+
+int inPinL = 10;
+int valL = 0;
+int inPinR = 11;
+int valR = 0;
+int wheelCount=0;
+
+void setup()
+{
+  //initialize pushbutton
+  pinMode(inPinL, INPUT); 
+
+  pinMode(inPinR, INPUT); 
+  
+  Serial.begin(9600);
+  Serial.println("setup");
+
+  WaitButtonL();
+  WaitButtonR();
+}
+
+void loop()
+{
+  Forward();
+  ReactBumpers();
+}
+
+void Forward()
+{
+      digitalWrite(M1, HIGH);
+      digitalWrite(M2, HIGH);                                       
+      analogWrite(E1, 128);                                   
+      analogWrite(E2, 128);
+}
+
+void ReactBumpers()
+{
+  WaitButtonL();
+  WaitButtonR();
+  if(valR && valL == HIGH){
+      while(wheelCount<16)
+      {
+        Serial.println(wheelCount);
+        digitalWrite(7, LOW);
+        analogWrite(6, 255);
+        digitalWrite(4, HIGH);
+        analogWrite(5, 255);
+    }
+  }
+  /*
+  if("left bumper hit") then
+  back up and pivot
+  if("left bumper hit") then
+  back up and pivot left by 
+  */
+}
+
+int WaitButtonL(){
+  while(1)
+  {
+    valL = digitalRead(inPinL);  // read input value
+
+    if (valL == LOW) {  
+
+        valL = digitalRead(inPinL);  // read input value       
+            if (valL==HIGH)
+            {
+              return; // check if the input is HIGH (button released)
+            }
+  } 
+  }
+}
+
+
+int WaitButtonR(){
+  while(1)
+  {
+    valR = digitalRead(inPinR);  // read input value
+
+    if (valR == LOW) {  
+
+        valR = digitalRead(inPinR);  // read input value       
+            if (valR==HIGH)
+            {
+              return; // check if the input is HIGH (button released)
+            }
+        } 
+  }
+}
+
+int countEncoderL(){
+  while(1){
+    if(digitalRead(ENC_L)==LOW)
+    {
+      while(1){
+        if(digitalRead(ENC_L)==HIGH)
+        {
+            wheelCount++;
+        return wheelCount;
+        }
+      }
+    }
+  }
+}
+
 
