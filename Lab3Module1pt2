@@ -14,11 +14,13 @@ void setup()
 {
   //initialize pushbutton
   pinMode(inPinL, INPUT); 
-
   pinMode(inPinR, INPUT); 
-  
+
+  pinMode(E2, OUTPUT);
+  pinMode(M2, OUTPUT);
   Serial.begin(9600);
   Serial.println("setup");
+
 
   WaitButtonL();
   WaitButtonR();
@@ -42,15 +44,73 @@ void ReactBumpers()
 {
   WaitButtonL();
   WaitButtonR();
-  if(valR && valL == HIGH){
-      while(wheelCount<16)
+  while(valR && valL == HIGH){
+    while(1)
+    {
+      if(wheelCount<4){
+        countEncoderL();
+        digitalWrite(7, LOW);
+        digitalWrite(4, LOW);        
+      }
+      else if(wheelCount>=4 && wheelCount<17)
       {
+        countEncoderL();
         Serial.println(wheelCount);
         digitalWrite(7, LOW);
-        analogWrite(6, 255);
+        analogWrite(6, 128);
         digitalWrite(4, HIGH);
-        analogWrite(5, 255);
+        analogWrite(5, 128);
+        if(wheelCount==17)
+        {
+        digitalWrite(7, HIGH);
+        digitalWrite(4, HIGH);
+        }
     }
+    }    
+  }
+
+    while(valL== HIGH && valR==LOW){
+      if(wheelCount<4){
+        countEncoderL();
+        digitalWrite(7, LOW);
+        digitalWrite(4, LOW);        
+      }
+      else if(wheelCount>=4 && wheelCount<11)
+      {
+        countEncoderL();
+        Serial.println(wheelCount);
+        digitalWrite(7, LOW);
+        analogWrite(6, 128);
+        digitalWrite(4, HIGH);
+        analogWrite(5, 128);
+        if(wheelCount==11)
+        {
+        digitalWrite(7, HIGH);
+        digitalWrite(4, HIGH);
+        }
+    } 
+  }
+
+      while(valR== HIGH && valL==LOW){
+      if(wheelCount<4){
+        countEncoderL();
+        digitalWrite(7, LOW);
+        digitalWrite(4, LOW);        
+      }
+      else if(wheelCount>=4 && wheelCount<11)
+      {
+        countEncoderL();
+        Serial.println(wheelCount);
+        digitalWrite(7, HIGH);
+        analogWrite(6, 128);
+        digitalWrite(4, LOW);
+        analogWrite(5, 128);
+        if(wheelCount==11)
+        {
+        digitalWrite(7, HIGH);
+        digitalWrite(4, HIGH);
+        }
+    } 
   }
   /*
   if("left bumper hit") then
@@ -95,10 +155,12 @@ int WaitButtonR(){
 
 int countEncoderL(){
   while(1){
-    if(digitalRead(ENC_L)==LOW)
+    if(digitalRead(ENC_L)==HIGH)
     {
+                  Serial.println("hi");
+
       while(1){
-        if(digitalRead(ENC_L)==HIGH)
+        if(digitalRead(ENC_L)==LOW)
         {
             wheelCount++;
         return wheelCount;
@@ -107,5 +169,3 @@ int countEncoderL(){
     }
   }
 }
-
-
