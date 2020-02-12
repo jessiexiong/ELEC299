@@ -1,22 +1,75 @@
+int inPinL = 10;
+int valL = 0;
+int inPinR = 11;
+int valR = 0;
+
+
 void setup()
 {
-	Init();
-	(optional delay)
-	WaitButton();
+  //initialize pushbutton
+  pinMode(inPinL, INPUT); 
+
+  pinMode(inPinR, INPUT); 
+  
+  Serial.begin(9600);
+  Serial.println("setup");
+
+  WaitButtonL();
+  //WaitButtonR();
 }
 
 void loop()
 {
-	Forward();
-	ReactBumpers();
+  /*
+  Forward();
+  ReactBumpers();
+  */
 }
 
+/*
 void ReactBumpers()
 {
-	if("both bumpers hit") then
-	pivot 180
-	if("left bumper hit") then
-	back up and pivot
-	if("left bumper hit") then
-	back up and pivot left by 
+  if("both bumpers hit") then
+  pivot 180
+  if("left bumper hit") then
+  back up and pivot
+  if("left bumper hit") then
+  back up and pivot left by 
 }
+*/
+
+void WaitButtonL(){
+    Serial.println("waitbuttonl");
+  while(1)
+  {
+    valL = digitalRead(inPinL);  // read input value
+    if (valL == LOW) {  
+        valL = digitalRead(inPinL);  // read input value       
+            if (valL==HIGH)
+            {
+              return; // check if the input is HIGH (button released)
+            }
+  } 
+  }
+}
+
+/*
+void WaitButtonR(){
+    valR = digitalRead(inPinR);  // read input value
+  if (valR == HIGH) {         // check if the input is HIGH (button released)
+    if (valR==LOW)
+    {
+      return;
+    }
+  } 
+
+}
+
+void Forward()
+{
+        digitalWrite(M1, HIGH);
+      digitalWrite(M2, HIGH);                                       
+      analogWrite(E1, PWM);                                   
+      analogWrite(E2, PWM);
+}
+*/
