@@ -5,9 +5,9 @@
 #define ENC_L 3
 
 int inPinL = 10;
-int valL = 0;
+int valL;
 int inPinR = 11;
-int valR = 0;
+int valR;
 int wheelCount=0;
 
 void setup()
@@ -15,14 +15,19 @@ void setup()
   //initialize pushbutton
   pinMode(inPinL, INPUT); 
   pinMode(inPinR, INPUT); 
-
+  pinMode(E1, OUTPUT);
+  pinMode(M1, OUTPUT);
   pinMode(E2, OUTPUT);
   pinMode(M2, OUTPUT);
+  
   Serial.begin(9600);
-  Serial.println("setup");
+  /*
   WaitButtonL();
   WaitButtonR();
+  */
 }
+
+
 
 void loop()
 {
@@ -32,106 +37,67 @@ void loop()
 
 void Forward()
 {
-  valR = digitalRead(inPinR);
-  valL = digitalRead(inPinL);
-  if(valR==LOW && valL==LOW){
       digitalWrite(M1, HIGH);
       digitalWrite(M2, HIGH);                                       
       analogWrite(E1, 128);                                   
       analogWrite(E2, 128);
   }
 
+  void ReactBumpers()
+{
+
+  if(digitalRead(inPinL)==LOW) {
+    delay(5);
+  }
+
+  if(digitalRead(inPinR) ==LOW){
+    delay(5);
+  }
+
+
+  if(digitalRead(inPinL) == LOW && digitalRead(inPinR) == LOW) {
+    reverse();
+    rotate180();
+  } 
+  else if(digitalRead(inPinL) == LOW && digitalRead(inPinR) == HIGH) {
+    reverse();
+    rotate45R();
+  } 
+  else if(digitalRead(inPinL) == HIGH && digitalRead(inPinR) == LOW) {
+    reverse();
+    rotate45L();
+  } 
+}
+void reverse() {
+      digitalWrite(M1, LOW); 
+      analogWrite(E1, 128);
+      digitalWrite(M2, LOW);
+      analogWrite(M2, 128);
+      delay(200);
+}
+void rotate180() {   
+  digitalWrite(M1, HIGH); 
+  analogWrite(E1, 100);    
+  digitalWrite(M2, HIGH);
+  analogWrite(E2, 200);
+  delay(200);
 }
 
-void ReactBumpers()
-{
-  valR = digitalRead(inPinR);
-  valL = digitalRead(inPinL);
-  if(valR && valL == HIGH){
-    while(1)
-    {
-      if(wheelCount<4){
-        countEncoderL();
-        digitalWrite(7, LOW);
-        digitalWrite(4, LOW);        
-      }
-      else if(wheelCount>=4 && wheelCount<17)
-      {
-        countEncoderL();
-        Serial.println(wheelCount);
-        digitalWrite(7, LOW);
-        analogWrite(6, 128);
-        digitalWrite(4, HIGH);
-        analogWrite(5, 128);
-        if(wheelCount==17)
-        {
-        digitalWrite(7, HIGH);
-        digitalWrite(4, HIGH);
-        wheelCount==0;
-        }
-    }
-    }    
-  }
+void rotate45L() {   
+  digitalWrite(M1, HIGH); 
+  analogWrite(E1, 80);   
+  digitalWrite(M2, HIGH);
+  analogWrite(E2, 128);
+  delay(200);
+}
 
-    else if(valL== HIGH){
-      while(1){
-      if(wheelCount<4){
-        countEncoderL();
-        digitalWrite(7, LOW);
-        digitalWrite(4, LOW);        
-      }
-      if(wheelCount>=4 && wheelCount<17)
-      {
-        countEncoderL();
-        Serial.println(wheelCount);
-        digitalWrite(7, LOW);
-        analogWrite(6, 128);
-        digitalWrite(4, HIGH);
-        analogWrite(5, 128);
-        if(wheelCount==17)
-        {
-        digitalWrite(7, HIGH);
-        digitalWrite(4, HIGH);
-        wheelCount==0;
 
-        }
-    }  
-      }
- 
-  }
-
-     else if(valR== HIGH){
-     while(1){
-      if(wheelCount<20){
-        countEncoderL();
-        digitalWrite(7, LOW);
-        digitalWrite(4, LOW);        
-      }
-      else if(wheelCount>=4 && wheelCount<17)
-      {
-        countEncoderL();
-        Serial.println(wheelCount);
-        digitalWrite(7, HIGH);
-        analogWrite(6, 128);
-        digitalWrite(4, LOW);
-        analogWrite(5, 128);
-        if(wheelCount==11)
-        {
-        digitalWrite(7, HIGH);
-        digitalWrite(4, HIGH);
-        wheelCount==0;
-
-        }
-    } 
-     }
-      
-  }
-  /*
-  if("left bumper hit") then
-  back up and pivot
-  if("left bumper hit") then
-  back up and pivot left by 
-  */
+void rotate45R() {   
+  digitalWrite(M1, HIGH); 
+  analogWrite(E1, 128);    
+  digitalWrite(M2, HIGH);
+  analogWrite(E2, 80);
+  delay(200);
 }
 
 int WaitButtonL(){
@@ -165,22 +131,5 @@ void WaitButtonR(){
               return; // check if the input is HIGH (button released)
             }
         } 
-  }
-}
-
-int countEncoderL(){
-  while(1){
-    if(digitalRead(ENC_L)==HIGH)
-    {
-                  Serial.println("hi");
-
-      while(1){
-        if(digitalRead(ENC_L)==LOW)
-        {
-            wheelCount++;
-        return wheelCount;
-        }
-      }
-    }
   }
 }
