@@ -1,0 +1,50 @@
+#include <Servo.h>
+
+#define IR A0
+
+
+Servo gripServo, tiltServo, panServo;
+
+float distance1, distance2, distance;
+
+void loop() {
+  // check distance of apporaching objects, formula was from Aiden's 
+  // group who plotted voltage vs distance in excel and found an approx equation
+  distance1 = analogRead(IR);
+  distance2 = distance1/1024 *5;
+  distance = 100 - (29.79 * pow(distance2,1.192));
+  Serial.println(distance1);
+  delay(500);
+
+
+    
+
+  if (distance < 80.0){
+    //as robot approaches slow down the robot 
+    forward();
+    Serial.println("Distance less than 80, slow down");
+    
+
+    //update distance
+    distance1 = analogRead(IR);
+    distance2 = distance1/1024 *5;
+    distance = 100 -(29.79 * pow(distance2,1.192));
+
+    //if about to hit object
+    if (distance<30){
+      analogWrite(E1,0);
+      analogWrite(E2,128);
+      delay(300);
+
+      Serial.println("Distance less than 30, turn around");
+      
+      // turn around
+      reverse();
+      rotate180();
+    }
+  }
+  else{
+    //go forward
+    forward();
+  }
+}
