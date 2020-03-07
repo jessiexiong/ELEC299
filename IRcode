@@ -1,0 +1,27 @@
+//the QSerial header file will be used
+#include "QSerial.h"
+
+//declare an object of type QSerial
+QSerial myIRserial;
+
+//defining pins
+#define txpin 11
+#define rxpin 12
+
+void setup() {
+  // put your setup code here, to run once:
+  myIRserial.attach(rxpin,txpin);
+}
+
+void loop() {
+  //call the QSerial transmit() function to send byte 'x' to pin and convert to ASCII code
+  myIRserial.transmit('Q');
+  delay(100);
+
+  //call the QSerial recieve() function  
+  int val = myIRserial.recieve(200)
+  if (val=='Q'){
+    //drive towards
+  }
+
+}
