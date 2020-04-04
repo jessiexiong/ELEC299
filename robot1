@@ -1,0 +1,229 @@
+#include <Servo.h>
+#include <time.h>
+#include <Arduino_LSM6DS3.h>
+Servo myservo1, myservo2, myservo3;
+
+#define E1 6
+#define M1 7
+#define E2 5
+#define M2 4
+
+#define LBUM 11
+#define RBUM 13
+#define rsensor 0 // Left Sensor on Analog Pin 2
+#define lsensor 1 // Right Sensor on Analog Pin 1
+#define msensor 3 // Middle Sensor on Analog Pin 0
+
+const int whitelevl = 600; // reading level is white if <600
+const int blacklevl = 850; // reading level is black if >850
+
+int countR = 0;// group of counters for the encoders. This group is used for positiioning along path. 
+int countL = 0;
+
+//IR sensor implementation
+    #include "QSerial.h"
+    QSerial myIRx;
+    QSerial myIRy;
+
+//ISM transmitter and receiver implementation
+    #include <SPI.h>
+    #include <nRF24L01.h>
+    #include <RF24.h>
+    RF24 radio(9, 10); // CE, CSN
+    //the address or pipe the two arduinos will use to communicate
+    //chooses which reciever to talk to 
+    const byte address[6] = "00001";
+    
+    void setup() {
+//set up motors
+        pinMode(M1, OUTPUT);
+        pinMode(M2, OUTPUT);
+        pinMode(E1, OUTPUT);
+        pinMode(E2, OUTPUT);
+        myservo1.attach(11);
+        myservo2.attach(10);
+        myservo3.attach(9);
+        myservo1.write(71);
+        myservo2.write(180);
+
+  myservo1.write(71);
+  myservo2.write(180);
+//IR sensor setup
+    myIRx.attach(5,-1);
+    myIRy.attach(4,-1);
+
+//ISM transmitter and receiver setup
+        pinMode(6, OUTPUT);
+        Serial.begin(9600);
+        //Initiate transmission signals
+        radio.begin();
+        // Open a reading pipe on radio
+        radio.openReadingPipe(0, address);   //Setting the address at which we will receive the data
+        radio.setPALevel(RF24_PA_MIN);       //Set power amiplifier level
+        radio.startListening();              //This sets the module as receiver
+    }
+
+void loop() {
+  while (checkLine() == true){
+        path();
+
+  }
+  //once on homebase
+  if (checkLine==false)
+  {
+  //once IR sensors have received information, store in array
+  char IRlocationx = myIRx.receive(500);
+  char IRlocationy = myIRx.receive(500);
+  char location[2] = IRlocationx,IRlocationy;
+  //use ISM transciever and send to robot 2
+  radio.write(&location, sizeof(location));
+  delay(1000);
+  }
+
+}
+
+void path() { // method of covering the whole testing area
+
+  forward();
+  if ( countR <= 120) // First Straight line of 150cm
+  {
+    forward();
+    while (countR <= 120) { // while statements matching the if statments 
+      //are used to be constantly checking for home base and the speed of the robot
+      checks();
+    }
+  }
+  else if ( countR > 120 && countR <= 192) //Second straight line of 90cm
+  {
+    turnRight();
+    forward();
+
+    while (countR > 120 && countR <= 192) {
+      checks();
+    }
+  }
+  else if (countR > 192 && countR < 312) //Third Straight line of 150cm
+  {
+    turnRight();
+    forward();
+
+    while (countR > 192 && countR < 312) {
+      checks();
+    }
+  }
+  else if (countR > 312 && countR < 348) // Fourth Straight line of 45cm
+  {
+    turnRight();
+    forward();
+
+    while (countR > 312 && countR < 348) {
+      checks();
+
+    }
+  } else if (countR > 348 && countR < 432) // Fifth straight line of 105cm
+  {
+    turnRight();
+    forward();
+
+    while (countR > 348 && countR < 432) {
+      checks();
+    }
+  }
+
+}
+
+
+
+void checks() { // blanket method to call other methods that are constantly repeated.
+  bumperCheck();
+  checkLine();
+}
+
+void bumperCheck() {// Used if robot over extents path and hits wall
+  if (digitalRead(LBUM) == LOW && digitalRead(RBUM) == LOW){
+      backward();
+      delay(1000);
+      turnRight();
+    }
+  
+  else if (digitalRead(LBUM) == LOW) {
+    Serial.print("LBUM");
+    Serial.println(digitalRead(LBUM));
+    turnRight();
+  }
+
+  else if (digitalRead(RBUM) == LOW) {
+    Serial.print("RBUM");
+    Serial.println(digitalRead(RBUM));
+    turnLeft();
+  }
+}
+
+bool checkLine() { // needs to go until all three sensors are black
+
+
+  // Case 1: All sensors are reading white. Drive forward!
+  //Case 2 : One Sensor is reading black.
+  if (readQD(lsensor) > blacklevl || readQD(msensor) > blacklevl || readQD(rsensor) > blacklevl) {
+
+
+    // Case 2 : Left sensor and middle sensor are reading white and right sensor is reading black. Turn right!
+    if (readQD(lsensor) < whitelevl && readQD(msensor) < whitelevl && readQD(rsensor) > blacklevl) {
+      turnRight();
+      forward();
+    }
+
+    // Case 3 : Left sensor is reading white, middle sensor and right sensor are reading black. Turn right!
+    else if (readQD(lsensor) < whitelevl && readQD(msensor) > blacklevl && readQD(rsensor) > blacklevl)
+    {
+      turnRight();
+      forward();
+    }
+
+    // Case 4 : Left sensor is reading black, middle sensor and right sensor are reading white. Turn left!
+    else if (readQD(lsensor) > blacklevl && readQD(msensor) < whitelevl && readQD(rsensor) < whitelevl)
+    {
+      turnLeft();
+      forward();
+    }
+    // Case 5 : Left sensor and middle sensor are reading black and right sensor is reading white. Turn left!
+    else if (readQD(lsensor) > blacklevl && readQD(msensor) > blacklevl && readQD(rsensor) < whitelevl)
+    {
+      turnLeft();
+      forward();
+    }
+  }
+  if (readQD(lsensor) > blacklevl && readQD(msensor) > blacklevl && readQD(rsensor) > blacklevl) {
+    //break loop and report flag. Code completed by another group.
+    forward();
+    return  false;
+
+  } 
+  else {
+    return  true;
+  }
+}
+
+void turnRight() {// right turn
+  analogWrite (E1, 210);
+  digitalWrite(M1, LOW);
+  analogWrite (E2, 210);
+  digitalWrite(M2, HIGH);
+  delay(1000);
+}
+
+void turnLeft() {// left trurn
+  analogWrite (E1, 210);
+  digitalWrite(M1, HIGH);
+  analogWrite (E2, 210);
+  digitalWrite(M2, LOW);
+  delay(1000);
+}
+void forward(){
+    digitalWrite(7, HIGH);
+    analogWrite(6, 125);
+    digitalWrite(4, HIGH);
+    analogWrite(5, 125);
+}
+
+
