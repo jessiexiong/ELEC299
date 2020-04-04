@@ -1,0 +1,65 @@
+        #include <math.h>
+
+        #define E1 6
+        #define M1 7
+        #define E2 5
+        #define M2 4
+
+//IR sensor implementation
+        #include "QSerial.h"
+        QSerial myIRx;
+        QSerial myIRy;
+
+//ISM transmitter and receiver implementation
+        #include <SPI.h>
+        #include <nRF24L01.h>
+        #include <RF24.h>
+        RF24 radio(9, 10); // CE, CSN
+        const byte address[6] = "00001";
+
+    void setup() {
+ //IR sensor setup
+        myIRx.attach(5,-1);
+        myIRy.attach(4,-1);
+//ISM transmitter and receiver setup
+        Serial.begin(9600);
+        radio.begin();
+        radio.openReadingPipe(0, address);   //Setting the address at which we will receive the data
+        radio.setPALevel(RF24_PA_MIN);       //You can set this as minimum or maximum depending on the distance between the transmitter and receiver.
+        radio.startListening();              //This sets the module as receiver
+    }
+    void loop()
+    {
+//IR sensors receive robot location
+      char IRlocationx = myIRx.receive(500);
+      char IRlocationy = myIRx.receive(500);
+//ISM transceiver recieves information from robot 1
+      delay(5);
+      radio.startListening();                            //This sets the module as receiver
+      while(!radio.available());                         //Looking for incoming data
+      radio.read(&location, sizeof(location)); //Reading the data
+  //driving code in direction of location[]
+      int vectorx = x - IRlocationx;
+        //driving code in direction of vectorx
+      int vectory = y - IRlocationy;
+        //driving code in direction of vectorx
+    }
+
+
+    void forward(){
+      digitalWrite(7, HIGH);
+      analogWrite(6, 125);
+      digitalWrite(4, HIGH);
+      analogWrite(5, 125);
+}
+
+void rotate(double x){
+      digitalWrite(7, HIGH);
+      analogWrite(6, 100);
+      digitalWrite(4, LOW);
+      analogWrite(5, 100);
+      //From testing we determined a delay 200 will give a rotation of 180 degrees
+      //by multiplying the angle x by 200/180, it will give the proper PWM to turn
+      //x degrees either left or right
+      delay(200*x/180);
+}
