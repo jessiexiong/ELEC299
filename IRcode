@@ -13,6 +13,7 @@ void setup() {
   myIRserial.attach(rxpin,txpin);
 }
 
+
 void loop() {
   //call the QSerial transmit() function to send byte 'x' to pin and convert to ASCII code
   myIRserial.transmit('Q');
